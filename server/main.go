@@ -6,6 +6,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 func commandHandler(cmd string) func(w http.ResponseWriter, r *http.Request) {
@@ -35,9 +36,10 @@ func responseHandler(fin chan<- bool) func(w http.ResponseWriter, r *http.Reques
 
 func main() {
 	command := flag.String("command", "hostname", "a command to execute on remote service")
+	port := flag.Uint("port", 8080, "port to listen on")
 	flag.Parse()
 
-	log.Println("Running command server with the command: ", *command)
+	log.Println("Running command server on port", *port, "with the command:", *command)
 
 	finished := make(chan bool)
 
@@ -45,7 +47,7 @@ func main() {
 	http.HandleFunc("/response", responseHandler(finished))
 
 	go func() {
-		log.Fatal(http.ListenAndServe(":8080", nil))
+		log.Fatal(http.ListenAndServe(":"+strconv.FormatUint(uint64(*port), 10), nil))
 	}()
 
 	log.Println("Waiting")
