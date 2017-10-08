@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os/exec"
 	"strings"
+	"io"
 )
 
 func main() {
@@ -32,12 +33,13 @@ func main() {
 		log.Fatal("Unknown content type")
 	}
 
-	payload := make([]byte, resp.ContentLength)
-	if n, err := resp.Body.Read(payload); err != nil && int64(n) != resp.ContentLength {
+	payload := make([]byte, 1024 * 100)
+	n := 0
+	if n, err = resp.Body.Read(payload); err != nil && err != io.EOF {
 		log.Fatal("Failed to get data, read ", n, " bytes: ", err)
 	}
 
-	command, err := base64.StdEncoding.DecodeString(string(payload))
+	command, err := base64.StdEncoding.DecodeString(string(payload[0:n]))
 	if err != nil {
 		log.Fatal("Failed to decode data: ", err)
 	}
