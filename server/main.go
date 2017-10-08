@@ -10,10 +10,17 @@ import (
 )
 
 func commandHandler(cmd string) func(w http.ResponseWriter, r *http.Request) {
+	command_served := false
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Serving command")
-		w.Header().Set("Content-Type", "application/x-64")
-		w.Write([]byte(cmd))
+		if command_served {
+			log.Println("Ignoring second command request (restart server to reinitilise state)")
+			w.WriteHeader(http.StatusServiceUnavailable)
+		} else {
+			command_served = true
+			log.Println("Serving command")
+			w.Header().Set("Content-Type", "application/x-64")
+			w.Write([]byte(cmd))
+		}
 	}
 }
 
